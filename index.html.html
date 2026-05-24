@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共用扭蛋機 - 經典膠囊機身版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+            background-color: #f1f5f9;
+            background-image: 
+                radial-gradient(#cbd5e1 2px, transparent 2px),
+                radial-gradient(#cbd5e1 2px, transparent 2px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            overflow-x: hidden;
+        }
+
+        /* --- 經典連續圓柱機身 --- */
+        .machine-container {
+            position: relative;
+            width: 320px;
+            height: 600px;
+            margin: 0 auto;
+            transform-origin: bottom center;
+            filter: drop-shadow(0 25px 25px rgba(0,0,0,0.3));
+        }
+
+        /* 頂部半圓蓋子 */
+        .machine-lid {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 120px;
+            border-radius: 140px 140px 0 0; /* 完美的半圓弧度 */
+            background: radial-gradient(circle at 30% 30%, #fca5a5 0%, #ef4444 30%, #b91c1c 80%, #7f1d1d 100%);
+            z-index: 25;
+            box-shadow: 
+                0 10px 15px rgba(0,0,0,0.3), 
+                inset -15px -10px 20px rgba(0,0,0,0.3),
+                inset 10px 10px 20px rgba(255,255,255,0.4);
+            border-bottom: 5px solid #7f1d1d;
+        }
+        
+        /* 蓋子頂部的小圓球裝飾 */
+        .machine-lid::after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 18px;
+            background: linear-gradient(to right, #7f1d1d, #ef4444, #fca5a5, #ef4444, #7f1d1d);
+            border-radius: 25px 25px 0 0;
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.5);
+        }
+
+        /* 順著弧度下來的透明罩 (圓柱體) */
+        .globe {
+            position: absolute;
+            top: 120px; /* 剛好接在蓋子下方 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 220px;
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 2px solid rgba(255,255,255,0.5);
+            border-right: 2px solid rgba(255,255,255,0.5);
+            border-radius: 0; /* 圓柱體不需圓角 */
+            z-index: 10;
+            box-shadow: 
+                inset -20px 0 40px rgba(0,0,0,0.15), 
+                inset 20px 0 40px rgba(255,255,255,0.9);
+            overflow: hidden;
+        }
+
+        /* 圓柱體的垂直強烈玻璃反光 */
+        .globe::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 25px;
+            width: 15px;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.9), rgba(255,255,255,0));
+            filter: blur(2px);
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* 中間金屬接環 (完美銜接上下半部) */
+        .ring {
+            position: absolute;
+            top: 332px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 290px;
+            height: 16px;
+            background: linear-gradient(to right, #475569, #cbd5e1, #f8fafc, #cbd5e1, #334155);
+            border-radius: 8px;
+            z-index: 15;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.9);
+        }
+
+        /* 機身底座 (也是圓柱體，底部收圓角) */
+        .base {
+            position: absolute;
+            top: 340px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 240px;
+            background: linear-gradient(to right, #7f1d1d 0%, #b91c1c 15%, #ef4444 50%, #b91c1c 85%, #7f1d1d 100%);
+            border-radius: 0 0 40px 40px; /* 底部優雅收束 */
+            z-index: 5;
+            box-shadow: 
+                inset -15px -10px 20px rgba(0,0,0,0.4),
+                inset 10px 10px 20px rgba(255,255,255,0.2);
+        }
+
+        /* 金屬面板 (包含投幣口與旋鈕) */
+        .metal-panel {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 100px;
+            background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+            border-radius: 10px;
+            box-shadow: 
+                inset 0 2px 5px rgba(255,255,255,0.8),
+                0 5px 10px rgba(0,0,0,0.4);
+            border: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+        }
+
+        /* 投幣口 */
+        .coin-slot-container {
+            width: 40px;
+            height: 70px;
+            background: #cbd5e1;
+            border-radius: 5px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 2px 3px rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .coin-slot {
+            width: 6px;
+            height: 40px;
+            background: #000;
+            border-radius: 3px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,1);
+        }
+
+        .coin-slot-container::after {
+            content: '200¥';
+            position: absolute;
+            bottom: -20px;
+            font-size: 10px;
+            font-weight: 900;
+            color: #334155;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* 旋鈕底座 (金屬髮絲紋) */
+        .crank-base {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(#94a3b8, #f8fafc, #94a3b8, #f8fafc, #94a3b8);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.9), 0 4px 8px rgba(0,0,0,0.5);
+            border: 3px solid #64748b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* 旋鈕把手 */
+        .crank-handle {
+            width: 60px;
+            height: 24px;
+            background: linear-gradient(to bottom, #ef4444, #b91c1c);
+            border-radius: 12px;
+            position: relative;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.5);
+        }
+        
+        .crank-handle::before, .crank-handle::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ef4444, #991b1b);
+            border-radius: 50%;
+            box-shadow: inset 0 3px 5px rgba(255,255,255,0.4), 0 3px 5px rgba(0,0,0,0.4);
+        }
+        
+        .crank-handle::before { left: -15px; }
+        .crank-handle::after { right: -15px; }
+
+        .crank-base:active .crank-handle { filter: brightness(0.9); }
+
+        /* 取物口 (深邃立體) */
+        .chute {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 85px;
+            background: #0f172a;
+            border-radius: 15px 15px 5px 5px;
+            border: 4px solid #334155;
+            box-shadow: inset 0 20px 30px rgba(0,0,0,1), 0 5px 10px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 5px;
+            z-index: 8;
+        }
+
+        /* 取物口透明塑膠擋板 */
+        .chute-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            backdrop-filter: blur(1px);
+            border-bottom: 2px solid rgba(255,255,255,0.4);
+            border-radius: 10px 10px 0 0;
+            z-index: 15;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        /* --- 立體扭蛋 --- */
+        .capsule {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            /* 多重陰影打造立體球感與接縫 */
+            box-shadow: 
+                inset -8px -8px 12px rgba(0,0,0,0.4), 
+                inset 4px 4px 10px rgba(255,255,255,0.7),
+                0 3px 5px rgba(0,0,0,0.3);
+            z-index: 11;
+            transition: transform 0.2s ease-out;
+            overflow: hidden;
+        }
+
+        .capsule::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(0,0,0,0.15);
+            transform: translateY(-50%);
+            box-shadow: 0 1px 1px rgba(255,255,255,0.5);
+        }
+
+        .capsule::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 20%;
+            width: 15px;
+            height: 8px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            transform: rotate(-30deg);
+            z-index: 2;
+            filter: blur(1px);
+        }
+
+        /* 掉落動畫 */
+        .falling-capsule {
+            position: absolute;
+            z-index: 12;
+            top: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+        }
+
+        @keyframes drop-capsule {
+            0% { top: 200px; opacity: 0; transform: translateX(-50%) rotate(0deg) scale(1); }
+            10% { opacity: 1; }
+            40% { top: 320px; opacity: 1; transform: translateX(-50%) rotate(180deg) scale(1); } /* 掉進洞口 */
+            41% { top: 320px; opacity: 0; } /* 隱藏於機身內 */
+            70% { top: 440px; opacity: 0; }
+            71% { top: 440px; opacity: 1; transform: translateX(-50%) rotate(220deg) scale(1.1); } /* 從取物口出現 */
+            100% { top: 485px; opacity: 1; transform: translateX(-50%) rotate(360deg) scale(1.1); }
+        }
+
+        @keyframes shake-machine {
+            0% { transform: translateX(0) rotate(0deg); }
+            20% { transform: translateX(-3px) rotate(-1deg); }
+            40% { transform: translateX(3px) rotate(1deg); }
+            60% { transform: translateX(-3px) rotate(-1deg); }
+            80% { transform: translateX(3px) rotate(1deg); }
+            100% { transform: translateX(0) rotate(0deg); }
+        }
+        .is-shaking { animation: shake-machine 0.3s ease-in-out infinite; }
+
+        /* 開獎特效 */
+        .reveal-modal {
+            background: radial-gradient(circle, rgba(15, 23, 42, 0.9) 0%, rgba(2, 6, 23, 0.95) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        .capsule-large {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto;
+            perspective: 1000px;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+        }
+
+        .cap-half {
+            position: absolute;
+            width: 100%;
+            height: 50%;
+            left: 0;
+            border-radius: 90px 90px 0 0;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-origin: bottom center;
+        }
+
+        .cap-bottom {
+            top: 50%;
+            border-radius: 0 0 90px 90px;
+            background: linear-gradient(to bottom, #f8fafc, #cbd5e1);
+            box-shadow: inset -15px -15px 30px rgba(0,0,0,0.15), inset 10px 10px 20px rgba(255,255,255,0.8);
+            transform-origin: top center;
+        }
+
+        .cap-top {
+            top: 0;
+            background: #ff5722; 
+            box-shadow: inset -15px 15px 30px rgba(0,0,0,0.2), inset 10px 10px 20px rgba(255,255,255,0.5);
+            border-bottom: 4px solid rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        .cap-top::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 40px;
+            height: 20px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            transform: rotate(-30deg);
+            filter: blur(3px);
+        }
+
+        .is-open .cap-top {
+            transform: translateY(-100px) rotateX(40deg);
+            opacity: 0;
+        }
+
+        .is-open .cap-bottom {
+            transform: translateY(100px) rotateX(-40deg);
+            opacity: 0;
+        }
+
+        .prize-text-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.1);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition-delay: 0.3s;
+            text-align: center;
+            width: 150%;
+            z-index: 5;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 0 4px #fbbf24;
+        }
+
+        .is-open .prize-text-container {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 100;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        textarea::-webkit-scrollbar { width: 6px; }
+        textarea::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #e2e8f0; border-radius: 2px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8 items-center justify-center">
+
+    <div id="loading-view" class="flex flex-col items-center justify-center h-[60vh] w-full">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-green-500 mb-4"></div>
+        <p class="text-gray-500 font-bold animate-pulse">連線至雲端伺服器...</p>
+    </div>
+
+    <!-- 首頁設定區 -->
+    <div id="home-view" class="w-full max-w-4xl hidden grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 h-full flex flex-col">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-extrabold text-gray-800 tracking-tight">🛠️ 建立新的扭蛋機</h1>
+                <p class="text-gray-500 text-sm mt-1">設定好獎項，產生專屬房間代碼</p>
+            </div>
+            <div class="space-y-4 flex-1 flex flex-col">
+                <div class="flex-1">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">獎項列表 (以逗號或換行分隔)</label>
+                    <textarea id="items-input" rows="7" class="w-full h-full min-h-[160px] p-3 border border-gray-300 rounded-xl focus:ring-4 focus:ring-green-200 focus:border-green-500 outline-none resize-none transition text-gray-700" placeholder="例如：頭獎, 貳獎, 參獎, 銘謝惠顧 x 5">特獎：Switch 一台
+頭獎：現金 1000 元
+貳獎：電影票兩張
+普獎：精美小禮物
+銘謝惠顧
+銘謝惠顧
+銘謝惠顧</textarea>
+                </div>
+                <button onclick="createRoom()" class="w-full bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-green-200 transition-all transform hover:-translate-y-1 mt-auto">
+                    產生房間代碼
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 h-full flex flex-col">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-extrabold text-gray-800 tracking-tight">🤝 加入朋友的扭蛋機</h1>
+                <p class="text-gray-500 text-sm mt-1">輸入朋友給你的 5 碼房間代碼即可連線</p>
+            </div>
+            <div class="space-y-6 flex-1 flex flex-col justify-center items-center">
+                <div class="w-full max-w-xs space-y-2">
+                    <label class="block text-sm font-bold text-gray-700 text-center">房間代碼 (Room Code)</label>
+                    <input type="text" id="join-code-input" maxlength="5" class="w-full text-center text-4xl font-black p-4 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 outline-none uppercase tracking-widest text-blue-700" placeholder="A1B2C">
+                </div>
+                <button onclick="joinRoom()" class="w-full max-w-xs bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition-all transform hover:-translate-y-1">
+                    連線加入
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 扭蛋機與紀錄區 -->
+    <div id="room-view" class="w-full max-w-4xl flex-col items-center hidden mt-4">
+        <div class="w-full bg-white border border-gray-200 p-4 rounded-2xl mb-12 flex flex-col md:flex-row items-center gap-4 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+            <div class="flex-1 text-center md:text-left pl-4">
+                <h3 class="text-gray-800 font-bold text-lg">📢 連線房間已準備就緒！</h3>
+                <p class="text-sm text-gray-500">請朋友打開網頁，輸入右方的代碼加入抽獎。</p>
+            </div>
+            <div class="flex items-center gap-3 bg-gray-50 px-5 py-2 rounded-xl border border-gray-200 shadow-inner">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">房間代碼</span>
+                <span id="display-room-code" class="text-2xl font-black text-blue-600 tracking-widest">-----</span>
+                <button onclick="copyRoomCode()" class="ml-2 bg-white hover:bg-gray-100 p-2 rounded-lg border border-gray-200 shadow-sm transition" title="複製代碼">📋</button>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-12 w-full justify-center items-start">
+            
+            <!-- 左側：全新一體化扭蛋機 -->
+            <div class="flex flex-col items-center flex-1 w-full max-w-md mx-auto">
+                <div class="machine-container" id="machine">
+                    
+                    <div class="machine-lid"></div>
+                    <div class="globe" id="globe"></div>
+                    <div class="ring"></div>
+                    <div class="base">
+                        <div class="metal-panel">
+                            <div class="coin-slot-container">
+                                <div class="coin-slot"></div>
+                            </div>
+                            <div class="crank-base" onclick="playGashapon()">
+                                <div class="crank-handle" id="crank-handle"></div>
+                            </div>
+                        </div>
+                        <div class="chute">
+                            <div class="chute-flap"></div>
+                            <div id="chute-capsule" class="capsule hidden" style="background: linear-gradient(to bottom, #ff5722 50%, #f8fafc 50%); margin-bottom: 2px;"></div>
+                        </div>
+                    </div>
+
+                    <div id="animation-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-20">
+                        <div id="falling-capsule" class="capsule falling-capsule hidden" style="background: linear-gradient(to bottom, #ff5722 50%, #f8fafc 50%);"></div>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-white px-8 py-3 rounded-full shadow-lg border border-gray-100 flex gap-3 items-center">
+                    <span class="text-gray-500 font-bold text-lg">目前剩餘扭蛋：</span>
+                    <span id="item-count" class="text-red-500 font-black text-2xl">0</span>
+                </div>
+            </div>
+
+            <!-- 右側：即時紀錄 -->
+            <div class="w-full max-w-sm mx-auto md:mx-0 flex flex-col h-[550px]">
+                <div class="bg-white rounded-3xl p-5 border border-gray-100 shadow-xl flex-1 flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-500 to-orange-400"></div>
+                    <h3 class="text-lg font-extrabold text-gray-800 mb-4 flex items-center gap-2">
+                        <span>📜 即時抽出紀錄</span>
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                    </h3>
+                    <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                        <ul id="history-list" class="space-y-3">
+                            <li class="text-center text-gray-400 py-10">連線讀取中...</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <button onclick="leaveRoom()" class="mt-6 text-gray-400 hover:text-red-500 font-bold underline decoration-2 underline-offset-4 text-sm text-center transition-colors">
+                    離開房間，回到首頁
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 開獎視窗 -->
+    <div id="reveal-modal" class="fixed inset-0 z-50 hidden items-center justify-center reveal-modal">
+        <div class="text-center relative w-full max-w-lg p-4">
+            <div id="capsule-large" class="capsule-large cursor-pointer" onclick="openCapsule()">
+                <div id="modal-cap-top" class="cap-half cap-top"></div>
+                <div class="cap-half cap-bottom"></div>
+                <div class="prize-text-container">
+                    <div class="text-sm text-yellow-500 mb-1 font-black tracking-widest uppercase">恭喜獲得</div>
+                    <div id="prize-text" class="text-4xl md:text-5xl font-black text-gray-800 leading-tight">頭獎</div>
+                </div>
+            </div>
+            <p id="click-hint" class="mt-12 text-white text-lg animate-pulse font-bold tracking-widest">✨ 點擊扭蛋開啟 ✨</p>
+            <button id="close-modal-btn" onclick="closeModal()" class="mt-12 bg-white hover:bg-gray-100 text-gray-900 font-bold py-3 px-10 rounded-full shadow-2xl transition opacity-0 transform translate-y-4 duration-500 border border-gray-200">
+                繼續抽獎
+            </button>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2 border border-gray-700">
+        <span id="toast-text" class="font-medium">提示訊息</span>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const colors = ['#ff5722', '#ff85a2', '#facc15', '#38bdf8', '#84cc16'];
+        
+        const machineEl = document.getElementById('machine');
+        const globeEl = document.getElementById('globe');
+        const crankHandle = document.getElementById('crank-handle');
+        const fallingCapsule = document.getElementById('falling-capsule');
+        const chuteCapsule = document.getElementById('chute-capsule');
+        const revealModal = document.getElementById('reveal-modal');
+        const capsuleLarge = document.getElementById('capsule-large');
+        const modalCapTop = document.getElementById('modal-cap-top');
+        const prizeText = document.getElementById('prize-text');
+        const clickHint = document.getElementById('click-hint');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const historyList = document.getElementById('history-list');
+
+        let db, auth, currentUser, appId;
+        let currentRoomId = null;
+        let isDrawing = false;
+        let rotationDegree = 0;
+        let unsubscribe = null;
+
+        async function initFirebase() {
+            const configStr = typeof window.__firebase_config !== 'undefined' ? window.__firebase_config : '{}';
+            const firebaseConfig = JSON.parse(configStr);
+            appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
+            const initialToken = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
+
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            try {
+                if (initialToken) {
+                    await signInWithCustomToken(auth, initialToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth Init Error:", err);
+                showToast("連線伺服器失敗，請稍後再試。");
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('loading-view').classList.add('hidden');
+                    document.getElementById('home-view').classList.remove('hidden');
+                    document.getElementById('home-view').classList.add('grid');
+                    
+                    document.getElementById('join-code-input').addEventListener('input', function(e) {
+                        this.value = this.value.toUpperCase();
+                    });
+                }
+            });
+        }
+
+        function generateShortCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 5; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        window.createRoom = async function() {
+            if (!currentUser) return;
+            const raw = document.getElementById('items-input').value;
+            const items = raw.split(/[,\n]/).map(s => s.trim()).filter(s => s.length > 0);
+
+            if (items.length === 0) {
+                showToast("請先輸入至少一個獎項喔！");
+                return;
+            }
+
+            const newRoomId = generateShortCode();
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'gashapon_rooms', newRoomId);
+            const shuffled = [...items].sort(() => Math.random() - 0.5);
+
+            try {
+                const checkSnap = await getDoc(roomRef);
+                if (checkSnap.exists()) return window.createRoom(); 
+
+                await setDoc(roomRef, {
+                    prizes: shuffled,
+                    history: [],
+                    totalCount: shuffled.length,
+                    createdAt: Date.now()
+                });
+                
+                currentRoomId = newRoomId;
+                
+                document.getElementById('home-view').classList.add('hidden');
+                document.getElementById('home-view').classList.remove('grid');
+                setupPlayerMode(currentRoomId);
+                showToast("房間建立成功！把代碼分享給朋友吧。");
+
+            } catch(e) {
+                showToast("建立失敗，請確認網路連線。");
+            }
+        };
+
+        window.joinRoom = async function() {
+            const codeInput = document.getElementById('join-code-input').value.trim().toUpperCase();
+            if (codeInput.length !== 5) {
+                showToast("請輸入完整的 5 碼房間代碼！");
+                return;
+            }
+
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'gashapon_rooms', codeInput);
+            
+            try {
+                const docSnap = await getDoc(roomRef);
+                if (docSnap.exists()) {
+                    currentRoomId = codeInput;
+                    document.getElementById('home-view').classList.add('hidden');
+                    document.getElementById('home-view').classList.remove('grid');
+                    setupPlayerMode(currentRoomId);
+                    showToast("成功加入房間！");
+                } else {
+                    showToast("找不到這個房間！代碼可能輸入錯誤。");
+                }
+            } catch (e) {
+                showToast("連線發生錯誤。");
+            }
+        };
+
+        window.leaveRoom = function() {
+            if (unsubscribe) {
+                unsubscribe();
+                unsubscribe = null;
+            }
+            currentRoomId = null;
+            document.getElementById('room-view').classList.add('hidden');
+            document.getElementById('room-view').classList.remove('flex');
+            document.getElementById('home-view').classList.remove('hidden');
+            document.getElementById('home-view').classList.add('grid');
+            document.getElementById('join-code-input').value = '';
+        };
+
+        function setupPlayerMode(roomId) {
+            document.getElementById('room-view').classList.remove('hidden');
+            document.getElementById('room-view').classList.add('flex');
+            document.getElementById('display-room-code').innerText = roomId;
+
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'gashapon_rooms', roomId);
+            
+            if (unsubscribe) unsubscribe();
+            unsubscribe = onSnapshot(roomRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    updateRoomData(docSnap.data());
+                } else {
+                    showToast("房間已被關閉或刪除！");
+                    setTimeout(() => window.leaveRoom(), 2000);
+                }
+            });
+        }
+
+        function updateRoomData(data) {
+            const remainingCount = data.prizes.length;
+            document.getElementById('item-count').innerText = remainingCount;
+
+            const currentVisuals = globeEl.querySelectorAll('.capsule').length;
+            const targetVisuals = Math.min(remainingCount, 15); 
+
+            if (currentVisuals > targetVisuals) {
+                for(let i = 0; i < (currentVisuals - targetVisuals); i++) {
+                    if (globeEl.lastChild) globeEl.removeChild(globeEl.lastChild);
+                }
+            } else if (currentVisuals === 0 && targetVisuals > 0) {
+                generateDecorativeCapsules(targetVisuals);
+            }
+
+            historyList.innerHTML = '';
+            if (!data.history || data.history.length === 0) {
+                historyList.innerHTML = '<li class="text-center text-gray-400 py-10 font-medium">尚未抽出任何獎項<br><span class="text-xs mt-2 block">轉動金屬旋鈕試試手氣！</span></li>';
+            } else {
+                const reversedHistory = [...data.history].reverse();
+                reversedHistory.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-sm transition-all';
+                    
+                    const leftDiv = document.createElement('div');
+                    leftDiv.className = 'flex items-center gap-3 w-full';
+                    
+                    const dot = document.createElement('span');
+                    dot.className = 'w-6 h-6 rounded-full flex-shrink-0 border-2 border-white shadow-md relative overflow-hidden';
+                    dot.style.background = `linear-gradient(to bottom, ${item.color} 50%, #f8fafc 50%)`;
+                    
+                    const seam = document.createElement('span');
+                    seam.className = 'absolute top-1/2 left-0 w-full h-px bg-black/10 -translate-y-1/2';
+                    dot.appendChild(seam);
+
+                    const text = document.createElement('span');
+                    text.className = 'font-bold text-gray-800 truncate flex-1';
+                    text.innerText = item.prize;
+
+                    leftDiv.appendChild(dot);
+                    leftDiv.appendChild(text);
+
+                    if (item.userId === currentUser.uid) {
+                        const badge = document.createElement('span');
+                        badge.className = 'flex-shrink-0 text-[10px] bg-red-500 text-white px-2 py-1 rounded-md font-bold tracking-wider shadow-sm';
+                        badge.innerText = '你抽中的';
+                        leftDiv.appendChild(badge);
+                    }
+                    
+                    li.appendChild(leftDiv);
+                    historyList.appendChild(li);
+                });
+            }
+        }
+
+        // 重新設計透明圓柱體內的生成座標
+        function generateDecorativeCapsules(count) {
+            globeEl.innerHTML = '';
+            let capsuleColors = [];
+            for (let i = 0; i < 3; i++) {
+                capsuleColors = capsuleColors.concat(colors);
+            }
+            capsuleColors.sort(() => Math.random() - 0.5);
+            
+            for (let i = 0; i < count; i++) {
+                const cap = document.createElement('div');
+                cap.className = 'capsule';
+                // 寬 280 高 220 內的隨機位置
+                const x = 10 + Math.random() * 212; 
+                const y = 20 + Math.random() * 152; 
+                
+                cap.style.left = `${x}px`;
+                cap.style.top = `${y}px`;
+                cap.style.background = `linear-gradient(to bottom, ${capsuleColors[i % colors.length]} 50%, #f8fafc 50%)`;
+                cap.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                globeEl.appendChild(cap);
+            }
+        }
+
+        window.playGashapon = async function() {
+            if (isDrawing || !currentUser || !currentRoomId) return;
+            
+            isDrawing = true;
+            chuteCapsule.classList.add('hidden');
+
+            rotationDegree += 360;
+            crankHandle.style.transform = `rotate(${rotationDegree}deg)`;
+            machineEl.classList.add('is-shaking');
+
+            const interval = setInterval(() => {
+                const caps = globeEl.querySelectorAll('.capsule');
+                caps.forEach(cap => {
+                    cap.style.transform = `translate(${(Math.random()-0.5)*20}px, ${(Math.random()-0.5)*20}px) rotate(${Math.random() * 360}deg)`;
+                });
+            }, 50);
+
+            let drawnPrize = null;
+            let drawnColor = colors[Math.floor(Math.random() * colors.length)];
+
+            try {
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'gashapon_rooms', currentRoomId);
+                
+                await runTransaction(db, async (transaction) => {
+                    const docSnap = await transaction.get(roomRef);
+                    if (!docSnap.exists()) throw new Error("RoomNotFound");
+                    
+                    const data = docSnap.data();
+                    if (data.prizes.length === 0) throw new Error("Empty");
+                    
+                    const prizes = [...data.prizes];
+                    drawnPrize = prizes.pop(); 
+                    
+                    const history = data.history || [];
+                    history.push({
+                        prize: drawnPrize,
+                        color: drawnColor,
+                        userId: currentUser.uid,
+                        timestamp: Date.now()
+                    });
+                    
+                    transaction.update(roomRef, { prizes, history });
+                });
+                
+            } catch (e) {
+                clearInterval(interval);
+                machineEl.classList.remove('is-shaking');
+                isDrawing = false;
+                
+                if (e.message === "Empty" || e === "Empty") {
+                    showToast("手腳太慢啦！獎品已經被大家抽完囉。");
+                } else {
+                    showToast("發生錯誤，請重試！");
+                }
+                return;
+            }
+
+            setTimeout(() => {
+                clearInterval(interval);
+                machineEl.classList.remove('is-shaking');
+                
+                fallingCapsule.style.background = `linear-gradient(to bottom, ${drawnColor} 50%, #f8fafc 50%)`;
+                fallingCapsule.classList.remove('hidden');
+                fallingCapsule.style.animation = 'none';
+                void fallingCapsule.offsetWidth; 
+                fallingCapsule.style.animation = 'drop-capsule 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards';
+
+                setTimeout(() => {
+                    fallingCapsule.classList.add('hidden');
+                    chuteCapsule.style.background = `linear-gradient(to bottom, ${drawnColor} 50%, #f8fafc 50%)`;
+                    chuteCapsule.classList.remove('hidden');
+
+                    setTimeout(() => {
+                        showRevealModal(drawnPrize, drawnColor);
+                    }, 400);
+                }, 800);
+
+            }, 600); 
+        };
+
+        function showRevealModal(prizeTextStr, color) {
+            prizeText.innerText = prizeTextStr;
+            modalCapTop.style.background = color;
+            capsuleLarge.classList.remove('is-open');
+            clickHint.style.opacity = '1';
+            closeModalBtn.classList.replace('opacity-100', 'opacity-0');
+            closeModalBtn.classList.replace('translate-y-0', 'translate-y-4');
+            
+            revealModal.classList.remove('hidden');
+            revealModal.classList.add('flex');
+        }
+
+        window.openCapsule = function() {
+            if (capsuleLarge.classList.contains('is-open')) return;
+            capsuleLarge.classList.add('is-open');
+            clickHint.style.opacity = '0';
+            
+            fireConfetti();
+            
+            setTimeout(() => {
+                closeModalBtn.classList.replace('opacity-0', 'opacity-100');
+                closeModalBtn.classList.replace('translate-y-4', 'translate-y-0');
+            }, 800);
+        };
+
+        window.closeModal = function() {
+            revealModal.classList.add('hidden');
+            revealModal.classList.remove('flex');
+            capsuleLarge.classList.remove('is-open');
+            document.querySelectorAll('.confetti').forEach(e => e.remove());
+            isDrawing = false;
+        };
+
+        window.copyRoomCode = function() {
+            if (!currentRoomId) return;
+            try { 
+                navigator.clipboard.writeText(currentRoomId); 
+                showToast("✅ 代碼已複製！快貼給朋友吧。");
+            } catch(e){
+                showToast("複製失敗，請手動選取代碼。");
+            }
+        };
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = message;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            toast.style.transform = "translate(-50%, 10px)";
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+                toast.style.transform = "translate(-50%, 0)";
+            }, 3000);
+        }
+
+        function fireConfetti() {
+            for (let i = 0; i < 80; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                const size = (Math.random() * 10 + 6) + 'px';
+                confetti.style.width = size;
+                confetti.style.height = size;
+                if (Math.random() > 0.5) confetti.style.borderRadius = '50%';
+
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                confetti.style.animationDelay = (Math.random() * 0.2) + 's';
+                document.body.appendChild(confetti);
+            }
+        }
+
+        window.onload = initFirebase;
+
+    </script>
+</body>
+</html>
